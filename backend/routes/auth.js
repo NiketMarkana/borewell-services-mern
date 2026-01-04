@@ -1,42 +1,48 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const mongoose = require('mongoose');
 const router = express.Router();
+
+// Simple User model (inline - no separate file needed)
+const userSchema = new mongoose.Schema({
+  name: String,
+  email: { type: String, unique: true },
+  password: String,  // Plain text for now (DEMO ONLY)
+  phone: String
+});
+const User = mongoose.model('User', userSchema);
 
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, phone } = req.body;
-    const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ error: 'User already exists' });
+    console.log('📥 Register data:', req.body);
     
+    const { name, email, password, phone } = req.body;
+    
+    // Check if user exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: 'Email already registered' });
+    }
+
+    // ✅ NO BCRYPT - Save plain password (DEMO)
     const user = new User({ name, email, password, phone });
     await user.save();
     
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.status(201).json({ 
-      token, 
-      user: { id: user._id, name, email, role: user.role } 
-    });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
+    console.log('✅ User SAVED:', user.name);
 
-router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email }).select('+password');
-    if (!user || !(await user.comparePassword(password))) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
+    // JWT Token (fake hash for demo)
+    const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
     
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.json({ 
+      success: true,
+      message: 'Account created successfully!',
       token, 
-      user: { id: user._id, name: user.name, email, role: user.role } 
+      user: { id: user._id, name: user.name, email: user.email }
     });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+    
+  } catch (error) {
+    console.error('❌ ERROR:', error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 

@@ -1,35 +1,85 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import { useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
+import axios from 'axios'
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({ email: '', password: '' })
+  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value })
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
+    setLoading(true)
+    
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
-      localStorage.setItem('token', res.data.token);
-      alert('Login successful!');
-    } catch (err) {
-      alert(err.response.data.error);
+      const res = await axios.post('http://localhost:5000/api/auth/login', formData)
+      localStorage.setItem('token', res.data.token)
+      localStorage.setItem('user', JSON.stringify(res.data.user))
+      alert('Login successful!')
+      navigate('/')
+    } catch (error) {
+      alert(error.response?.data?.error || 'Login failed')
+    } finally {
+      setLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="container mx-auto p-8 max-w-md">
-      <h1 className="text-3xl font-bold mb-8 text-center">Login</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email" className="w-full p-3 border rounded" required />
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password" className="w-full p-3 border rounded" required />
-        <button type="submit" className="w-full bg-blue-500 text-white p-3 rounded hover:bg-blue-600">
-          Login
-        </button>
-      </form>
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-12 space-y-8">
+        <div className="text-center">
+          <h2 className="text-4xl font-bold text-gray-900 mb-2">Welcome Back</h2>
+          <p className="text-gray-600">Sign in to continue</p>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              placeholder="john@example.com"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              placeholder="••••••••"
+            />
+          </div>
+          
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 transition-all"
+          >
+            {loading ? 'Signing In...' : 'Sign In'}
+          </button>
+        </form>
+        
+        <div className="text-center">
+          <p className="text-sm text-gray-600">
+            Don't have an account?{' '}
+            <Link to="/register" className="font-semibold text-green-600 hover:text-green-500">Sign up</Link>
+          </p>
+        </div>
+      </div>
     </div>
-  );
-};
+  )
+}
 
-export default Login;
+export default Login

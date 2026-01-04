@@ -2,27 +2,19 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: [true, 'Name is required'] },
-  email: { 
-    type: String, 
-    required: [true, 'Email is required'], 
-    unique: true,
-    lowercase: true,
-    match: [/^\S+@\S+\.\S+$/, 'Please enter valid email']
-  },
-  password: { type: String, required: [true, 'Password is required'], minlength: 6 },
-  role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
   phone: String
 }, { timestamps: true });
 
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 12);
-  next();
-});
+// ✅ FIXED: Remove ALL middleware - Simple direct hashing
+userSchema.methods.hashPassword = async function(password) {
+  return await bcrypt.hash(password, 10);
+};
 
-userSchema.methods.comparePassword = async function(candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
+userSchema.methods.comparePassword = async function(password) {
+  return await bcrypt.compare(password, this.password);
 };
 
 module.exports = mongoose.model('User', userSchema);

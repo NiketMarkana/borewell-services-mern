@@ -1,34 +1,24 @@
 const express = require('express');
 const Booking = require('../models/Booking');
-const auth = require('../middleware/auth'); // Add later
 const router = express.Router();
 
 router.post('/', async (req, res) => {
   try {
     const booking = new Booking(req.body);
     await booking.save();
-    const populated = await Booking.findById(booking._id).populate('product user');
-    res.status(201).json(populated);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(201).json(booking);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 });
 
-router.get('/my/:userId', async (req, res) => {
-  const bookings = await Booking.find({ user: req.params.userId })
-    .populate('product')
-    .sort({ createdAt: -1 });
-  res.json(bookings);
-});
-
-router.put('/:id/status', async (req, res) => {
-  const { status } = req.body;
-  const booking = await Booking.findByIdAndUpdate(
-    req.params.id,
-    { status },
-    { new: true }
-  ).populate('product user');
-  res.json(booking);
+router.get('/', async (req, res) => {
+  try {
+    const bookings = await Booking.find().populate('user product');
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 module.exports = router;

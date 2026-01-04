@@ -1,45 +1,22 @@
-import { Link, useLocation } from 'react-router-dom';
-import { LogOut, User } from 'lucide-react';
+import { Link } from 'react-router-dom'
 
 const Navbar = () => {
-  const location = useLocation();
-  const token = localStorage.getItem('token');
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = '/';
-  };
-
   return (
-    <nav className="bg-gradient-to-r from-blue-600 to-blue-800 shadow-lg">
-      <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-        <Link to="/" className="text-3xl font-bold text-white drop-shadow-lg">
-          💧 Borewell Services
-        </Link>
-        <div className="flex items-center space-x-6">
-          <Link to="/" className={`hover:text-blue-200 ${location.pathname === '/' ? 'underline' : ''}`}>Home</Link>
-          <Link to="/products" className={`hover:text-blue-200 ${location.pathname === '/products' ? 'underline' : ''}`}>Products</Link>
-          {token && (
-            <>
-              <Link to="/dashboard" className="hover:text-blue-200">Dashboard</Link>
-              {user.role === 'admin' && <Link to="/admin" className="hover:text-blue-200">Admin</Link>}
-              <button onClick={logout} className="flex items-center space-x-1 hover:text-blue-200">
-                <LogOut size={20} /> <span>Logout</span>
-              </button>
-            </>
-          )}
-          {!token && (
-            <>
-              <Link to="/login" className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-gray-100 font-medium">Login</Link>
-              <Link to="/register" className="bg-transparent border-2 border-white text-white px-4 py-2 rounded-lg hover:bg-white hover:text-blue-600 font-medium">Register</Link>
-            </>
-          )}
+    <nav className="bg-white/80 backdrop-blur-md shadow-lg sticky top-0 z-50">
+      <div className="container mx-auto px-6 py-4">
+        <div className="flex justify-between items-center">
+          <Link to="/" className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            💧 Borewell Pro
+          </Link>
+          <div className="space-x-4">
+            <Link to="/" className="px-4 py-2 hover:bg-blue-100 rounded-lg transition-all">Home</Link>
+            <Link to="/products" className="px-4 py-2 hover:bg-blue-100 rounded-lg transition-all">Products</Link>
+            <Link to="/login" className="bg-blue-600 text-white px-6 py-2 rounded-xl hover:bg-blue-700 transition-all font-medium">Login</Link>
+          </div>
         </div>
       </div>
     </nav>
-  );
-};
+  )
+}
 
-export default Navbar;
+export default Navbar
