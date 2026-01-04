@@ -1,82 +1,87 @@
-import { useState, useEffect } from 'react'
-import axios from 'axios'
+import { Link } from 'react-router-dom';
 
 const Products = () => {
-  const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    axios.get('http://localhost:5000/api/products')
-      .then(res => {
-        setProducts(res.data)
-        setLoading(false)
-      })
-      .catch(err => {
-        console.error('Products load error:', err)
-        setLoading(false)
-      })
-  }, [])
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-xl text-gray-600">Loading products...</p>
-        </div>
-      </div>
-    )
-  }
+  const services = [
+    {
+      title: "Borewell Services",
+      image: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=400&h=300&fit=crop",
+      icon: "🛠️",
+      link: "/borewell-quote"
+    },
+    {
+      title: "HDPE/PVC Pipe Products", 
+      image: "https://images.unsplash.com/photo-1586579519010-1ee1ff6ddb2e?w=400&h=300&fit=crop",
+      icon: "🔧",
+      link: "#"
+    },
+    {
+      title: "Submersible Pumps",
+      image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=300&fit=crop", 
+      icon: "💧",
+      link: "#"
+    },
+    {
+      title: "Maintenance",
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop",
+      icon: "🔧",
+      link: "#"
+    }
+  ];
 
   return (
-    <div className="py-12">
-      <div className="container mx-auto px-4">
-        <h1 className="text-5xl font-bold mb-12 text-center bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-          Products & Services
-        </h1>
-        
-        {products.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-2xl text-gray-500 mb-4">No products available</p>
-            <p className="text-lg text-gray-400">Run <code>npm run seed</code> in backend first</p>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {products.map(product => (
-              <div key={product._id} className="bg-white rounded-2xl shadow-xl hover:shadow-2xl p-8 hover:-translate-y-2 transition-all border border-gray-100">
-                <img 
-                  src={product.image || 'https://via.placeholder.com/400x300/4F46E5/FFFFFF?text=No+Image'} 
-                  alt={product.name} 
-                  className="w-full h-48 object-cover rounded-xl mb-6"
-                />
-                <h3 className="text-2xl font-bold mb-4 text-gray-800">{product.name}</h3>
-                <p className="text-gray-600 mb-6 min-h-[60px]">{product.description || 'High quality borewell service/product'}</p>
-                <div className="space-y-3 mb-8">
-                  <div className="flex justify-between items-center">
-                    <span className="text-3xl font-bold text-green-600">₹{product.price?.toLocaleString()}</span>
-                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                      product.available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
-                    </span>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    <p><strong>Category:</strong> {product.category?.toUpperCase()}</p>
-                    {product.specs && (
-                      <p className="break-words"><strong>Specs:</strong> {JSON.stringify(product.specs)}</p>
-                    )}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-20">
+      <div className="container mx-auto px-6">
+        {/* Header */}
+        <div className="text-center mb-20">
+          <h1 className="text-6xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-6">
+            Our Services
+          </h1>
+          <p className="text-xl text-gray-600">Complete borewell solutions</p>
+        </div>
+
+        {/* 4 Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8">
+          {services.map((service, index) => (
+            <div key={index} className="group">
+              <div className="bg-white rounded-3xl shadow-2xl hover:shadow-3xl transform hover:-translate-y-4 transition-all duration-500 overflow-hidden h-full">
+                {/* Image */}
+                <div className="h-64 bg-cover bg-center relative group-hover:scale-110 transition-transform duration-500" 
+                     style={{ backgroundImage: `url(${service.image})` }}>
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all"></div>
+                  <div className="absolute top-6 left-6">
+                    <div className="w-16 h-16 bg-white/90 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                      <span className="text-2xl">{service.icon}</span>
+                    </div>
                   </div>
                 </div>
-                <button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200">
-                  Book Service / Enquiry
-                </button>
+
+                {/* Content */}
+                <div className="p-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+                    {service.title}
+                  </h3>
+                  
+                  {/* Explore Button */}
+                  <div className="flex justify-center">
+                    <Link 
+                      to={service.link}
+                      className={`px-8 py-4 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 text-white ${
+                        index === 0 
+                          ? 'bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700' 
+                          : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
+                      }`}
+                    >
+                      Explore →
+                    </Link>
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Products
+export default Products;

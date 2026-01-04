@@ -12,21 +12,29 @@ const Register = () => {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
+  e.preventDefault();
+  setLoading(true);
+  
+  try {
+    const res = await axios.post('http://localhost:5000/api/auth/register', formData);
+    localStorage.setItem('token', res.data.token);
+    localStorage.setItem('user', JSON.stringify(res.data.user));
     
-    try {
-      const res = await axios.post('http://localhost:5000/api/auth/register', formData)
-      localStorage.setItem('token', res.data.token)
-      localStorage.setItem('user', JSON.stringify(res.data.user))
-      alert('Registration successful!')
-      navigate('/')
-    } catch (error) {
-      alert(error.response?.data?.error || 'Registration failed')
-    } finally {
-      setLoading(false)
-    }
+    // ✅ FORCE UPDATE - Dispatch storage event
+    window.dispatchEvent(new Event('storage'));
+    
+    // Update parent if available
+    if (setUser) setUser(res.data.user);
+    
+    const roleMessage = res.data.user.role === 'admin' ? 'Admin registration successful!' : 'Registration successful!';
+    alert(roleMessage);
+    navigate('/');
+  } catch (error) {
+    alert(error.response?.data?.error || 'Registration failed');
+  } finally {
+    setLoading(false);
   }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-gradient-to-br from-blue-50 to-indigo-100">

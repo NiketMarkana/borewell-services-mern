@@ -1,30 +1,48 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import axios from 'axios'
 
-const Login = () => {
+const Login = ({ setUser }) => {
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+
+  // ✅ CHECK IF ALREADY LOGGED IN
+  useEffect(() => {
+    const user = localStorage.getItem('user');
+    if (user) {
+      navigate('/');
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
     
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', formData)
-      localStorage.setItem('token', res.data.token)
-      localStorage.setItem('user', JSON.stringify(res.data.user))
-      alert('Login successful!')
-      navigate('/')
+      const res = await axios.post('http://localhost:5000/api/auth/login', formData);
+      
+      // ✅ SAVE DATA
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+      
+      // ✅ UPDATE NAVBAR
+      if (setUser) setUser(res.data.user);
+      window.dispatchEvent(new Event('storage'));
+      
+      // ✅ SUCCESS - IMMEDIATE REDIRECT
+      alert(res.data.message || 'Login successful!');
+      navigate('/', { replace: true });
+      
     } catch (error) {
-      alert(error.response?.data?.error || 'Login failed')
+      console.error('Login error:', error.response?.data);
+      alert(error.response?.data?.error || 'Login failed');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
