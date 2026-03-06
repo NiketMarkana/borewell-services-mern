@@ -49,8 +49,12 @@ const Orders = () => {
     }
   };
 
-  const removeOrder = async (id) => {
-    if (!window.confirm('Are you sure you want to remove this cancelled order?')) return;
+  const removeOrder = async (id, isCancel = false) => {
+    const msg = isCancel
+      ? 'Are you sure you want to cancel this pending order?'
+      : 'Are you sure you want to remove this cancelled order from your history?';
+
+    if (!window.confirm(msg)) return;
     try {
       await api.delete(`/orders/${id}`);
       setOrders(orders.filter(o => o._id !== id));
@@ -127,17 +131,45 @@ const Orders = () => {
                       {order.serviceDetails?.additionalNotes && <div><strong>Notes:</strong> {order.serviceDetails?.additionalNotes}</div>}
                     </>
                   )}
+                  {order.serviceDetails?.images?.length > 0 && (
+                    <div style={{ marginTop: '12px' }}>
+                      <strong style={{ display: 'block', marginBottom: '8px' }}>Site Images:</strong>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        {order.serviceDetails.images.map((imgSrc, idx) => (
+                          <a key={idx} href={imgSrc} target="_blank" rel="noopener noreferrer">
+                            <img
+                              src={imgSrc}
+                              alt={`Site Photo ${idx + 1}`}
+                              style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border)' }}
+                            />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div style={{ fontSize: '0.95rem' }}>
-                  <div style={{ marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)', color: 'var(--text-light)' }}>
-                    <div><strong>Contact Mobile:</strong> {order.contact?.mobile}</div>
-                    <div><strong>Contact Email:</strong> {order.contact?.email}</div>
+                  <div style={{ marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border)' }}>
+                    {order.contact?.name && <div><strong>Customer Name:</strong> {order.contact.name}</div>}
+                    <div><strong>Mobile:</strong> {order.contact?.mobile}</div>
+                    <div><strong>Email:</strong> {order.contact?.email}</div>
+                    {order.contact?.address && <div><strong>Delivery Address:</strong> {order.contact.address}</div>}
+                    {order.contact?.deliveryDate && (
+                      <div><strong>Requested Delivery Date:</strong> {new Date(order.contact.deliveryDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                    )}
                   </div>
                   {order.items?.map(item => (
-                    <div key={item._id} style={{ marginBottom: '8px', paddingBottom: '4px', borderBottom: '1px solid var(--border)' }}>
-                      <div><strong>{item.productName}</strong> × {item.quantity} {item.unit || 'units'}</div>
-                      {item.additionalDetails && <div className="muted" style={{ fontSize: '0.8rem', fontStyle: 'italic' }}>Note: {item.additionalDetails}</div>}
+                    <div key={item._id} style={{ marginBottom: '12px', paddingBottom: '8px', borderBottom: '1px solid var(--border)' }}>
+                      <div style={{ fontWeight: 700 }}>{item.productName} × {item.quantity} {item.unit || 'units'}</div>
+                      <div style={{ color: 'var(--primary-dark)', fontWeight: 600 }}>₹{item.price?.toLocaleString('en-IN')}</div>
+                      {item.additionalDetails && (
+                        <div style={{ marginTop: '6px', fontSize: '0.85rem', color: 'var(--text-light)', background: 'var(--bg)', borderRadius: '6px', padding: '6px 10px' }}>
+                          {item.additionalDetails.split('. ').filter(Boolean).map((detail, i) => (
+                            <div key={i}>• {detail}</div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
                   <div style={{ fontWeight: 800, marginTop: '12px', color: 'var(--primary-dark)', fontSize: '1.1rem' }}>Total Amount: ₹{order.totalAmount}</div>
@@ -178,6 +210,9 @@ const Orders = () => {
                 </div>
                 {['Cancelled', 'Rejected'].includes(order.status) && (
                   <button className="button outline" style={{ width: '100%', marginTop: '1rem' }} onClick={() => removeOrder(order._id)}>Remove from history</button>
+                )}
+                {order.status === 'Pending' && (
+                  <button className="button outline" style={{ width: '100%', marginTop: '1rem', color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => removeOrder(order._id, true)}>Cancel Order</button>
                 )}
               </>
             )}

@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/client';
 
+const StarDisplay = ({ value }) => (
+  <span style={{ color: '#f59e0b', fontSize: '1rem', letterSpacing: 1 }}>
+    {'★'.repeat(value)}{'☆'.repeat(5 - value)}
+  </span>
+);
+
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('products');
   const [loading, setLoading] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [products, setProducts] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [reviews, setReviews] = useState([]);
 
   // Product Form State
   const [productForm, setProductForm] = useState({
@@ -16,7 +23,8 @@ const AdminDashboard = () => {
     price: '',
     description: '',
     unit: 'piece',
-    image: ''
+    image: '',
+    isAvailable: true
   });
 
   // Employee Form State
@@ -34,6 +42,8 @@ const AdminDashboard = () => {
       fetchEmployees();
     } else if (activeTab === 'products') {
       fetchProducts();
+    } else if (activeTab === 'reviews') {
+      fetchReviews();
     }
   }, [activeTab]);
 
@@ -59,12 +69,34 @@ const AdminDashboard = () => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get('/products');
+      const { data } = await api.get('/products?all=true');
       setProducts(data);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchReviews = async () => {
+    setLoading(true);
+    try {
+      const { data } = await api.get('/reviews/all');
+      setReviews(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteReview = async (id) => {
+    if (!window.confirm('Delete this review?')) return;
+    try {
+      await api.delete(`/reviews/${id}`);
+      setReviews(reviews.filter(r => r._id !== id));
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete review');
     }
   };
 
@@ -104,9 +136,24 @@ const AdminDashboard = () => {
       price: product.price,
       description: product.description || '',
       unit: product.unit,
-      image: product.image || ''
+      image: product.image || '',
+      isAvailable: product.isAvailable !== undefined ? product.isAvailable : true
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDeleteProduct = async (id) => {
+    if (!window.confirm('Are you sure you want to permanently delete this product?')) return;
+    try {
+      setLoading(true);
+      await api.delete(`/products/${id}`);
+      fetchProducts();
+      alert('Product deleted successfully!');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete product');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEmployeeSubmit = async (e) => {
@@ -158,6 +205,13 @@ const AdminDashboard = () => {
           style={{ borderRadius: '25px', padding: '10px 24px' }}
         >
           Manage Employees
+        </button>
+        <button
+          className={`button ${activeTab === 'reviews' ? 'primary' : 'outline'}`}
+          onClick={() => setActiveTab('reviews')}
+          style={{ borderRadius: '25px', padding: '10px 24px' }}
+        >
+          ⭐ Reviews
         </button>
       </div>
 
@@ -231,6 +285,7 @@ const AdminDashboard = () => {
                     <option value="piece">piece</option>
                     <option value="meter">meter</option>
                     <option value="feet">feet</option>
+                    <option value="kg">kg</option>
                   </select>
                 </div>
                 <div style={{ flex: 1 }}>
@@ -242,6 +297,15 @@ const AdminDashboard = () => {
                     placeholder="/assets/pvc.png"
                   />
                 </div>
+              </div>
+              <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="checkbox"
+                  id="isAvailable"
+                  checked={productForm.isAvailable}
+                  onChange={(e) => setProductForm({ ...productForm, isAvailable: e.target.checked })}
+                />
+                <label htmlFor="isAvailable" style={{ margin: 0, cursor: 'pointer' }}>Available for Customers</label>
               </div>
               <div className="form-group">
                 <label className="label">Description</label>
@@ -264,7 +328,7 @@ const AdminDashboard = () => {
                     style={{ flex: 1, borderColor: 'var(--danger)', color: 'var(--danger)' }}
                     onClick={() => {
                       setEditingProduct(null);
-                      setProductForm({ name: '', category: 'HDPE', subCategory: '', price: '', description: '', unit: 'piece', image: '' });
+                      setProductForm({ name: '', category: 'HDPE', subCategory: '', price: '', description: '', unit: 'piece', image: '', isAvailable: true });
                     }}
                   >
                     Cancel
@@ -291,15 +355,25 @@ const AdminDashboard = () => {
                           <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{p.name}</div>
                           <div className="muted" style={{ fontSize: '0.9rem' }}>
                             {p.category} {p.subCategory ? `(${p.subCategory})` : ''} • ₹{p.price}/{p.unit}
+                            {!p.isAvailable && <span style={{ color: 'var(--danger)', marginLeft: '10px', fontWeight: 600 }}>(Unavailable)</span>}
                           </div>
                         </div>
-                        <button
-                          className="button outline"
-                          style={{ padding: '4px 12px', fontSize: '0.8rem' }}
-                          onClick={() => handleEditProduct(p)}
-                        >
-                          Edit
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            className="button outline"
+                            style={{ padding: '4px 12px', fontSize: '0.8rem' }}
+                            onClick={() => handleEditProduct(p)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="button outline"
+                            style={{ padding: '4px 12px', fontSize: '0.8rem', color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                            onClick={() => handleDeleteProduct(p._id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -307,6 +381,51 @@ const AdminDashboard = () => {
               </div>
             )}
           </div>
+        </div >
+      ) : activeTab === 'reviews' ? (
+        <div className="card shadow-lg" style={{ padding: '2rem' }}>
+          <h3 style={{ marginBottom: '1.5rem', color: 'var(--primary-dark)' }}>⭐ All Reviews</h3>
+          {loading ? (
+            <p>Loading reviews...</p>
+          ) : reviews.length === 0 ? (
+            <p className="muted">No reviews submitted yet.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {reviews.map(r => (
+                <div key={r._id} className="card outline" style={{ padding: '1rem', background: '#f8fafc' }}>
+                  <div className="flex" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                        <span style={{ fontWeight: 700 }}>{r.userName}</span>
+                        <span className="badge" style={{
+                          background: r.targetType === 'product' ? '#eff6ff' : '#f0fdf4',
+                          color: r.targetType === 'product' ? '#2563eb' : '#16a34a',
+                          fontSize: '0.75rem', padding: '2px 8px'
+                        }}>
+                          {r.targetType === 'product' ? '📦 Product' : '🔧 Service'}
+                        </span>
+                        <span className="muted" style={{ fontSize: '0.8rem' }}>
+                          {new Date(r.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
+                      </div>
+                      <StarDisplay value={r.rating} />
+                      {r.comment && <p style={{ margin: '6px 0 0', fontSize: '0.9rem', color: 'var(--text)' }}>"{r.comment}"</p>}
+                      <p className="muted" style={{ fontSize: '0.78rem', marginTop: 4 }}>
+                        Target: {r.targetType} / {r.targetId.length > 24 ? `${r.targetId.slice(0, 12)}…` : r.targetId}
+                      </p>
+                    </div>
+                    <button
+                      className="button outline"
+                      style={{ color: 'var(--danger)', borderColor: 'var(--danger)', padding: '4px 12px', fontSize: '0.8rem', flexShrink: 0 }}
+                      onClick={() => handleDeleteReview(r._id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       ) : (
         <div className="grid" style={{ gridTemplateColumns: '1fr 1.5fr', gap: '2rem' }}>
@@ -395,7 +514,7 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
-    </div>
+    </div >
   );
 };
 

@@ -46,7 +46,8 @@ const orderSchema = new mongoose.Schema({
     address: String,
     locationDescription: String,
     depthFeet: Number,
-    additionalNotes: String
+    additionalNotes: String,
+    images: [{ type: String }]
   },
   contact: {
     mobile: String,
@@ -66,7 +67,7 @@ const orderSchema = new mongoose.Schema({
 });
 
 // Add initial status to history before saving
-orderSchema.pre('save', function(next) {
+orderSchema.pre('save', function (next) {
   if (this.isNew && this.status) {
     this.statusHistory.push({
       status: this.status,

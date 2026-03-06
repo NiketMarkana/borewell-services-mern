@@ -239,3 +239,46 @@ a {
     padding: 40px 0;
   }
 }
+
+/* ── Ratings & Reviews ─────────────────────── */
+.review-section {
+  margin-top: 4px;
+}
+
+.review-section h4 {
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.review-card {
+  background: #fafafa;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  transition: box-shadow 0.15s;
+}
+
+.review-card:hover {
+  box-shadow: var(--shadow);
+}
+
+.review-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.review-form-wrap {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 6px;
+}

@@ -8,8 +8,13 @@ const router = express.Router();
 // @access  Public
 router.get('/', async (req, res) => {
   try {
-    const { category } = req.query;
-    const query = category ? { category } : {};
+    const { category, all } = req.query;
+    let query = category ? { category } : {};
+
+    // If 'all' is not true, only show available products
+    if (all !== 'true') {
+      query.isAvailable = { $ne: false };
+    }
 
     const products = await Product.find(query).sort({ createdAt: -1 });
     res.json(products);
@@ -51,7 +56,8 @@ router.post('/', protect, admin, async (req, res) => {
       description,
       price,
       unit,
-      image
+      image,
+      isAvailable: req.body.isAvailable !== undefined ? req.body.isAvailable : true
     });
 
     await product.save();
@@ -79,9 +85,29 @@ router.put('/:id', protect, admin, async (req, res) => {
       product.price = price !== undefined ? Number(price) : product.price;
       product.unit = unit || product.unit;
       product.image = image || product.image;
+      product.isAvailable = req.body.isAvailable !== undefined ? req.body.isAvailable : product.isAvailable;
 
       const updatedProduct = await product.save();
       res.json(updatedProduct);
+    } else {
+      res.status(404).json({ message: 'Product not found' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   DELETE /api/products/:id
+// @desc    Delete a product (admin only)
+// @access  Private/Admin
+router.delete('/:id', protect, admin, async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+
+    if (product) {
+      await product.deleteOne();
+      res.json({ message: 'Product removed' });
     } else {
       res.status(404).json({ message: 'Product not found' });
     }

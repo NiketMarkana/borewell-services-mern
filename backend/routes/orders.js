@@ -148,10 +148,10 @@ router.delete('/:id', protect, async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    // Check status (only allow deleting if Cancelled/Rejected)
-    const isCancelled = ['Cancelled', 'Rejected'].includes(order.status);
-    if (!isCancelled && req.user.role !== 'admin') {
-      return res.status(400).json({ message: 'Cannot delete active order' });
+    // Check status (only allow deleting if Pending, Cancelled or Rejected)
+    const canDelete = ['Pending', 'Cancelled', 'Rejected'].includes(order.status);
+    if (!canDelete && req.user.role !== 'admin') {
+      return res.status(400).json({ message: 'Can only delete Pending or Cancelled orders' });
     }
 
     await order.deleteOne();

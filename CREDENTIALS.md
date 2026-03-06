@@ -8,7 +8,7 @@ This file contains the default and test login credentials for the Borewell Servi
 - **Role:** Admin (Full access to dashboard and order management)
 
 ## Employee Access
-- **Email:** `employee@borewell.com`
+- **Email:** `testemployee@example.com`
 - **Password:** `employee123`
 - **Role:** Employee (Access to view and update order status)
 > [!NOTE]
