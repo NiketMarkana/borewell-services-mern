@@ -1,4 +1,4 @@
-# Borewell Services & Pipes – MERN
+# Splendor AquaTech – MERN Borewell & Pipe Management
 
 Full-stack MERN app for borewell services and HDPE/PVC/Submersible products with user/admin roles, order tracking, and maintenance guides.
 

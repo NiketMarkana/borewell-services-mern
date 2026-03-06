@@ -7,7 +7,7 @@ const Footer = () => (
     <div className="container">
       <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <strong>Borewell Services & Pipes</strong>
+          <strong>Splendor AquaTech</strong>
           <div>Quality borewell drilling, HDPE/PVC pipes, submersible motors.</div>
         </div>
         <div>
@@ -28,7 +28,7 @@ const Layout = ({ children }) => {
       <nav className="nav">
         <div className="container nav-inner">
           <div style={{ fontWeight: 800, fontSize: 18 }}>
-            <Link to="/">Borewell & Pipes</Link>
+            <Link to="/">Splendor AquaTech</Link>
           </div>
           <div className="nav-links">
             <Link to="/">Home</Link>

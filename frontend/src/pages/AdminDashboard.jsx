@@ -13,6 +13,7 @@ const AdminDashboard = () => {
   const [employees, setEmployees] = useState([]);
   const [products, setProducts] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [editingEmployee, setEditingEmployee] = useState(null);
   const [reviews, setReviews] = useState([]);
 
   // Product Form State
@@ -34,8 +35,11 @@ const AdminDashboard = () => {
     phone: '',
     password: '',
     address: '',
-    countryCode: '+91'
+    countryCode: '+91',
+    departments: []
   });
+
+  const availableDepartments = ['Borewell Services', 'HDPE', 'PVC', 'Water Pump'];
 
   useEffect(() => {
     if (activeTab === 'employees') {
@@ -166,17 +170,44 @@ const AdminDashboard = () => {
     try {
       const payload = {
         ...empForm,
-        phone: `${empForm.countryCode} ${empForm.phone}`
+        phone: empForm.phone.includes(' ') ? empForm.phone : `${empForm.countryCode} ${empForm.phone}`
       };
-      await api.post('/admin/employees', payload);
-      alert('Employee added successfully!');
-      setEmpForm({ name: '', email: '', phone: '', password: '', address: '', countryCode: '+91' });
+
+      if (editingEmployee) {
+        await api.put(`/admin/employees/${editingEmployee._id}`, payload);
+        alert('Employee updated successfully!');
+      } else {
+        await api.post('/admin/employees', payload);
+        alert('Employee added successfully!');
+      }
+
+      setEmpForm({ name: '', email: '', phone: '', password: '', address: '', countryCode: '+91', departments: [] });
+      setEditingEmployee(null);
       fetchEmployees();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to add employee');
+      alert(err.response?.data?.message || 'Failed to process employee');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEditEmployee = (emp) => {
+    setEditingEmployee(emp);
+    const parts = emp.phone.split(' ');
+    setEmpForm({
+      name: emp.name,
+      email: emp.email,
+      phone: parts.length > 1 ? parts[1] : emp.phone,
+      password: '', // Keep empty for security, handle optional update on backend if needed
+      address: emp.address || '',
+      countryCode: parts.length > 1 ? parts[0] : '+91',
+      departments: emp.departments || []
+    });
+  };
+
+  const handleCancelEmpEdit = () => {
+    setEditingEmployee(null);
+    setEmpForm({ name: '', email: '', phone: '', password: '', address: '', countryCode: '+91', departments: [] });
   };
 
   const handleDeleteEmployee = async (id) => {
@@ -429,9 +460,11 @@ const AdminDashboard = () => {
         </div>
       ) : (
         <div className="grid" style={{ gridTemplateColumns: '1fr 1.5fr', gap: '2rem' }}>
-          {/* Add Employee Form */}
+          {/* Add/Edit Employee Form */}
           <div className="card shadow-lg" style={{ padding: '2rem' }}>
-            <h3 style={{ marginBottom: '1.5rem', color: 'var(--primary-dark)' }}>Register New Employee</h3>
+            <h3 style={{ marginBottom: '1.5rem', color: 'var(--primary-dark)' }}>
+              {editingEmployee ? 'Update Employee Details' : 'Register New Employee'}
+            </h3>
             <form onSubmit={handleEmployeeSubmit} className="form">
               <div className="form-group">
                 <label className="label">Full Name</label>
@@ -467,17 +500,52 @@ const AdminDashboard = () => {
                   </div>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label className="label">Password</label>
-                  <input className="input" type="password" value={empForm.password} onChange={(e) => setEmpForm({ ...empForm, password: e.target.value })} required placeholder="Min 6 chars" />
+                  <label className="label">Password {!editingEmployee && <span style={{ color: 'red' }}>*</span>}</label>
+                  <input
+                    className="input"
+                    type="password"
+                    value={empForm.password}
+                    onChange={(e) => setEmpForm({ ...empForm, password: e.target.value })}
+                    required={!editingEmployee}
+                    placeholder={editingEmployee ? "Leave blank to keep same" : "Min 6 chars"}
+                  />
                 </div>
               </div>
               <div className="form-group">
                 <label className="label">Address</label>
                 <textarea className="input" value={empForm.address} onChange={(e) => setEmpForm({ ...empForm, address: e.target.value })} placeholder="Residential address" rows="2" />
               </div>
-              <button type="submit" className="button shadow" style={{ width: '100%', marginTop: '0.5rem' }} disabled={loading}>
-                {loading ? 'Adding...' : 'Add Employee'}
-              </button>
+
+              <div className="form-group">
+                <label className="label">Assign Departments</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', background: '#f1f5f9', padding: '12px', borderRadius: '8px' }}>
+                  {availableDepartments.map(dept => (
+                    <label key={dept} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={empForm.departments.includes(dept)}
+                        onChange={(e) => {
+                          const newDepts = e.target.checked
+                            ? [...empForm.departments, dept]
+                            : empForm.departments.filter(d => d !== dept);
+                          setEmpForm({ ...empForm, departments: newDepts });
+                        }}
+                      />
+                      {dept}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '1rem' }}>
+                <button type="submit" className="button shadow" style={{ flex: 1 }} disabled={loading}>
+                  {loading ? 'Processing...' : editingEmployee ? 'Update Employee' : 'Add Employee'}
+                </button>
+                {editingEmployee && (
+                  <button type="button" className="button outline" onClick={handleCancelEmpEdit} style={{ flex: 1 }}>
+                    Cancel
+                  </button>
+                )}
+              </div>
             </form>
           </div>
 
@@ -497,15 +565,49 @@ const AdminDashboard = () => {
                         <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{emp.name}</div>
                         <div className="muted" style={{ fontSize: '0.9rem' }}>{emp.email}</div>
                         <div style={{ fontSize: '0.9rem', marginTop: '4px' }}><strong>Phone:</strong> {emp.phone}</div>
-                        {emp.address && <div style={{ fontSize: '0.9rem' }}><strong>Addr:</strong> {emp.address}</div>}
+                        <div style={{ marginTop: '10px' }}>
+                          <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--primary)', marginBottom: '4px' }}>Departments:</div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                            {emp.departments?.length > 0 ? (
+                              emp.departments.map(dept => (
+                                <span
+                                  key={dept}
+                                  style={{
+                                    fontSize: '0.7rem',
+                                    padding: '2px 8px',
+                                    borderRadius: '12px',
+                                    border: '1px solid var(--primary)',
+                                    background: '#eff6ff',
+                                    color: 'var(--primary)',
+                                    fontWeight: 500
+                                  }}
+                                >
+                                  {dept}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="muted" style={{ fontSize: '0.7rem' }}>No departments assigned</span>
+                            )}
+                          </div>
+                        </div>
+                        {emp.address && <div style={{ fontSize: '0.9rem', marginTop: '8px' }}><strong>Addr:</strong> {emp.address}</div>}
                       </div>
-                      <button
-                        className="button outline"
-                        style={{ color: 'var(--danger)', borderColor: 'var(--danger)', padding: '4px 12px', fontSize: '0.8rem' }}
-                        onClick={() => handleDeleteEmployee(emp._id)}
-                      >
-                        Remove
-                      </button>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          className="button outline"
+                          style={{ padding: '4px 12px', fontSize: '0.8rem' }}
+                          onClick={() => handleEditEmployee(emp)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="button outline"
+                          style={{ color: 'var(--danger)', borderColor: 'var(--danger)', padding: '4px 12px', fontSize: '0.8rem' }}
+                          onClick={() => handleDeleteEmployee(emp._id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -514,7 +616,7 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
-    </div >
+    </div>
   );
 };
 

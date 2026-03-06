@@ -9,6 +9,7 @@ const Services = () => {
   const [form, setForm] = useState({
     name: '',
     mobile: '',
+    email: '',
     date: '',
     address: '',
     locationDescription: '',
@@ -48,10 +49,14 @@ const Services = () => {
           ...form,
           depthFeet: Number(form.depthFeet)
         },
-        contact: { mobile: `${form.countryCode} ${form.mobile}`, email: user?.email }
+        contact: {
+          mobile: `${form.countryCode} ${form.mobile}`,
+          email: form.email || user?.email,
+          name: form.name
+        }
       });
       alert('Request submitted! Track status in Orders.');
-      setForm({ name: '', countryCode: '+91', mobile: '', date: '', address: '', locationDescription: '', depthFeet: '', additionalNotes: '', images: [] });
+      setForm({ name: '', countryCode: '+91', mobile: '', email: '', date: '', address: '', locationDescription: '', depthFeet: '', additionalNotes: '', images: [] });
     } catch (err) {
       alert(err?.response?.data?.message || 'Failed to submit');
     } finally {
@@ -150,6 +155,10 @@ const Services = () => {
               </select>
               <input className="input" type="text" pattern="[0-9]{10}" placeholder="10-digit number" value={form.mobile} onChange={handleMobileChange} required style={{ flex: 1 }} />
             </div>
+          </div>
+          <div style={{ flex: 1 }}>
+            <label className="label">Email</label>
+            <input className="input" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required placeholder="Contact email" />
           </div>
         </div>
         <div className="flex">

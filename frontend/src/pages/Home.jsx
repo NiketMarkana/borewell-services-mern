@@ -12,7 +12,7 @@ const cardData = [
 const Home = () => (
   <div className="container">
     <section className="hero">
-      <h1 style={{ fontSize: 32, marginBottom: 10 }}>Borewell Services & Pipes</h1>
+      <h1 style={{ fontSize: 32, marginBottom: 10 }}>Splendor AquaTech</h1>
       <p className="muted">End-to-end borewell, HDPE/PVC pipes, and submersible motors with transparent tracking.</p>
       <div className="card-actions" style={{ justifyContent: 'center', marginTop: 14 }}>
         <Link to="/services" className="button">Book Borewell Service</Link>

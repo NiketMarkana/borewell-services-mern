@@ -1,6 +1,6 @@
-# ✨ Borewell Services: Full Functionality Overview ✨
+# ✨ Splendor AquaTech: Full Functionality Overview ✨
 
-Welcome to the comprehensive guide of features and capabilities for the **Borewell Services & Pipes** MERN application.
+Welcome to the comprehensive guide of features and capabilities for the **Splendor AquaTech** MERN application.
 
 ---
 

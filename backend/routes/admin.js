@@ -15,6 +15,32 @@ router.get('/orders', protect, authorize('admin', 'employee'), async (req, res) 
     if (status) query.status = status;
     if (type) query.type = type;
 
+    // If requester is an employee, restrict to their assigned departments
+    if (req.user.role === 'employee') {
+      const depts = req.user.departments || [];
+      const conditions = [];
+
+      if (depts.includes('Borewell Services')) {
+        conditions.push({ type: 'service' });
+      }
+
+      // Produc categories: HDPE, PVC, Water Pump
+      const prodCategories = depts.filter(d => ['HDPE', 'PVC', 'Water Pump'].includes(d));
+      if (prodCategories.length > 0) {
+        conditions.push({
+          type: 'product',
+          'items.category': { $in: prodCategories }
+        });
+      }
+
+      if (conditions.length > 0) {
+        query.$or = conditions;
+      } else {
+        // If employee has no departments, they can't see anything
+        query._id = null;
+      }
+    }
+
     const skip = (Number(page) - 1) * Number(limit);
 
     const [orders, total] = await Promise.all([
@@ -64,6 +90,23 @@ router.put(
 
       if (!order) {
         return res.status(404).json({ message: 'Order not found' });
+      }
+
+      // Check if employee has permission to update this order
+      if (req.user.role === 'employee') {
+        const depts = req.user.departments || [];
+        let hasAccess = false;
+
+        if (order.type === 'service' && depts.includes('Borewell Services')) {
+          hasAccess = true;
+        } else if (order.type === 'product') {
+          // If any item category matches employee departments
+          hasAccess = order.items.some(item => depts.includes(item.category));
+        }
+
+        if (!hasAccess) {
+          return res.status(403).json({ message: 'Access denied: You are not authorized to manage this order category' });
+        }
       }
 
       // Validate status based on order type
@@ -145,7 +188,8 @@ router.post(
         phone,
         password,
         address,
-        role: 'employee'
+        role: 'employee',
+        departments: req.body.departments || []
       });
 
       const employeeData = employee.toObject();
@@ -180,6 +224,59 @@ router.delete('/employees/:id', protect, admin, async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+// @route   PUT /api/admin/employees/:id
+// @desc    Update employee details (admin only)
+// @access  Private/Admin
+router.put(
+  '/employees/:id',
+  protect,
+  admin,
+  [
+    body('name').notEmpty().withMessage('Name is required'),
+    body('email').isEmail().withMessage('Valid email is required'),
+    body('phone').notEmpty().withMessage('Phone is required')
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { name, email, phone, address, departments } = req.body;
+      const employee = await User.findById(req.params.id);
+
+      if (!employee || employee.role !== 'employee') {
+        return res.status(404).json({ message: 'Employee not found' });
+      }
+
+      // Check if email is already taken by another user
+      if (email !== employee.email) {
+        const emailExists = await User.findOne({ email });
+        if (emailExists) {
+          return res.status(400).json({ message: 'Email already in use by another user' });
+        }
+      }
+
+      employee.name = name;
+      employee.email = email;
+      employee.phone = phone;
+      employee.address = address;
+      if (departments) employee.departments = departments;
+
+      await employee.save();
+
+      const employeeData = employee.toObject();
+      delete employeeData.password;
+
+      res.json(employeeData);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
+);
 
 module.exports = router;
 

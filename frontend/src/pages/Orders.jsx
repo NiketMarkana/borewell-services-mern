@@ -173,8 +173,8 @@ const Orders = () => {
 
             {isAdminOrEmployee && (
               <div style={{ marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)' }}>
-                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{order.user?.name}</div>
-                <div className="muted" style={{ fontSize: '0.8rem' }}>{order.user?.email}</div>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{order.contact?.name || order.user?.name}</div>
+                <div className="muted" style={{ fontSize: '0.8rem' }}>{order.contact?.email || order.user?.email}</div>
               </div>
             )}
 
@@ -187,6 +187,7 @@ const Orders = () => {
                 <div style={{ fontSize: '0.95rem' }}>
                   <div><strong>Name:</strong> {order.serviceDetails?.name}</div>
                   <div><strong>Mobile:</strong> {order.contact?.mobile || order.serviceDetails?.mobile}</div>
+                  <div><strong>Email:</strong> {order.contact?.email}</div>
                   <div><strong>Preferred Date:</strong> {dayjs(order.serviceDetails?.date).format('DD MMM YYYY')}</div>
                   <div><strong>Depth:</strong> {order.serviceDetails?.depthFeet} ft</div>
                   {isAdminOrEmployee && (

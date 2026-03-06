@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['user', 'admin', 'employee'],
     default: 'user'
+  },
+  departments: {
+    type: [String],
+    default: []
   }
 }, {
   timestamps: true

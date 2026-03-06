@@ -55,7 +55,9 @@ const Products = () => {
     if (selected) {
       setForm((prev) => ({
         ...prev,
-        price: selected.price
+        price: selected.price,
+        email: prev.email || user?.email || '',
+        name: prev.name || user?.name || ''
       }));
       // Auto-scroll to form
       setTimeout(() => {
