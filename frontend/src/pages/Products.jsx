@@ -119,6 +119,7 @@ const Products = () => {
         items: [{
           product: selected._id,
           productName: selected.name,
+          category: selected.category,
           price: finalPrice,
           quantity: Number(form.quantity),
           additionalDetails: extraDetails.trim()

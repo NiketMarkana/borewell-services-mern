@@ -8,6 +8,7 @@ const Orders = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [typeFilter, setTypeFilter] = useState('all'); // 'all', 'service', 'product'
   const [selectedTab, setSelectedTab] = useState('All');
   const [statusInput, setStatusInput] = useState('');
 
@@ -38,6 +39,11 @@ const Orders = () => {
     fetchOrders();
   }, [user]);
 
+  // Reset status tab when type filter changes
+  useEffect(() => {
+    setSelectedTab('All');
+  }, [typeFilter]);
+
   const updateOrderStatus = async (orderId, newStatus) => {
     if (!newStatus) return alert('Select a status first');
     try {
@@ -63,15 +69,33 @@ const Orders = () => {
     }
   };
 
+  const getVisibleOrders = useMemo(() => {
+    let result = [...orders];
+    if (typeFilter === 'service') {
+      result = result.filter(o => o.type === 'service');
+    } else if (['HDPE', 'PVC', 'Water Pump'].includes(typeFilter)) {
+      result = result.filter(o =>
+        o.type === 'product' &&
+        o.items?.some(item =>
+          item.category === typeFilter || (item.product?.category === typeFilter)
+        )
+      );
+    }
+    return result;
+  }, [orders, typeFilter]);
+
   const getUniqueStatuses = () => {
-    const list = new Set(orders.map(o => o.status));
+    const list = new Set(getVisibleOrders.map(o => o.status));
     return ['All', ...Array.from(list)];
   };
 
   const filteredOrders = useMemo(() => {
-    if (selectedTab === 'All') return orders;
-    return orders.filter(o => o.status === selectedTab);
-  }, [orders, selectedTab]);
+    let result = getVisibleOrders;
+    if (selectedTab !== 'All') {
+      result = result.filter(o => o.status === selectedTab);
+    }
+    return result;
+  }, [getVisibleOrders, selectedTab]);
 
   if (loading) return <div className="container section">Loading...</div>;
 
@@ -80,18 +104,59 @@ const Orders = () => {
       <h2 style={{ marginBottom: '1.5rem' }}>{isAdminOrEmployee ? 'Manage System Orders' : 'My Orders'}</h2>
 
       {isAdminOrEmployee && (
-        <div className="card-actions" style={{ marginBottom: '2.5rem', justifyContent: 'center' }}>
-          {getUniqueStatuses().map(s => (
+        <>
+          {/* Order Type Filter */}
+          <div className="card-actions" style={{ marginBottom: '1rem', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
             <button
-              key={s}
-              className={`button ${s === selectedTab ? 'secondary' : 'outline'}`}
-              style={{ borderRadius: '20px' }}
-              onClick={() => setSelectedTab(s)}
+              className={`button ${typeFilter === 'all' ? 'primary' : 'outline'}`}
+              style={{ borderRadius: '25px', padding: '10px 24px' }}
+              onClick={() => setTypeFilter('all')}
             >
-              {s}
+              All Orders
             </button>
-          ))}
-        </div>
+            <button
+              className={`button ${typeFilter === 'service' ? 'primary' : 'outline'}`}
+              style={{ borderRadius: '25px', padding: '10px 24px' }}
+              onClick={() => setTypeFilter('service')}
+            >
+              Borewell Services
+            </button>
+            <button
+              className={`button ${typeFilter === 'HDPE' ? 'primary' : 'outline'}`}
+              style={{ borderRadius: '25px', padding: '10px 24px' }}
+              onClick={() => setTypeFilter('HDPE')}
+            >
+              HDPE
+            </button>
+            <button
+              className={`button ${typeFilter === 'PVC' ? 'primary' : 'outline'}`}
+              style={{ borderRadius: '25px', padding: '10px 24px' }}
+              onClick={() => setTypeFilter('PVC')}
+            >
+              PVC
+            </button>
+            <button
+              className={`button ${typeFilter === 'Water Pump' ? 'primary' : 'outline'}`}
+              style={{ borderRadius: '25px', padding: '10px 24px' }}
+              onClick={() => setTypeFilter('Water Pump')}
+            >
+              Water Pump
+            </button>
+          </div>
+
+          <div className="card-actions" style={{ marginBottom: '2.5rem', justifyContent: 'center' }}>
+            {getUniqueStatuses().map(s => (
+              <button
+                key={s}
+                className={`button ${s === selectedTab ? 'secondary' : 'outline'}`}
+                style={{ borderRadius: '20px' }}
+                onClick={() => setSelectedTab(s)}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </>
       )}
 
       <div className="grid cards-3">
