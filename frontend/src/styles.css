@@ -1,0 +1,241 @@
+:root {
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --primary-light: #eff6ff;
+  --accent: #f59e0b;
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --text: #1e293b;
+  --text-light: #64748b;
+  --border: #e2e8f0;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+body {
+  margin: 0;
+  font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.nav {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+}
+
+.nav-links {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.nav-links a {
+  font-weight: 500;
+  color: var(--text-light);
+}
+
+.nav-links a:hover {
+  color: var(--primary);
+}
+
+.button {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+.button:hover {
+  background: var(--primary-dark);
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+.button.secondary {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+}
+
+.button.outline {
+  background: transparent;
+  border: 2px solid var(--border);
+  color: var(--text);
+}
+
+.button.outline:hover {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+
+.hero {
+  padding: 80px 0 40px;
+  text-align: center;
+  background: radial-gradient(circle at top right, var(--primary-light), transparent);
+}
+
+.grid {
+  display: grid;
+  gap: 24px;
+}
+
+.grid.cards-4 {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.grid.cards-3 {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-light);
+}
+
+.card img {
+  width: 100%;
+  height: 200px;
+  object-fit: contain;
+  background: var(--bg);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  padding: 8px;
+}
+
+.shadow-lg {
+  box-shadow: var(--shadow-lg);
+}
+
+.muted {
+  color: var(--text-light);
+  font-size: 0.95rem;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  background: #fff;
+  font-family: inherit;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+.label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+  color: var(--text);
+}
+
+.badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.section {
+  padding: 60px 0;
+}
+
+.flex {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.card-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.footer {
+  margin-top: auto;
+  background: #0f172a;
+  color: #94a3b8;
+  padding: 40px 0;
+}
+
+@media (max-width: 768px) {
+  .nav-inner {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .grid {
+    gap: 16px;
+  }
+
+  .hero {
+    padding: 40px 0;
+  }
+}
